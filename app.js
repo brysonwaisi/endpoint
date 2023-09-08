@@ -1,54 +1,51 @@
 const express = require("express");
+const moment = require("moment");
+const dotenv = require("dotenv");
+
+dotenv.config();
+const PORT = process.env.PORT || 5000;
+
 const app = express();
 
-function getSlackName(req) {
-  return req.query.slack_name || "nyamwange";
-}
-
-function getCurrentDay() {
-  const days = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
-  const now = new Date();
-  return days[now.getUTCDay()];
-}
-
-function getCurrentUtcTime() {
-  const now = new Date();
-  return now.toISOString().split(".")[0] + "Z";
-}
+app.get("/", (req, res) => {
+  res.send("API is running...");
+});
 
 app.get("/api", (req, res) => {
-  const slack_name = getSlackName(req);
-  const current_day = getCurrentDay();
-  const utc_time = getCurrentUtcTime();
-  const track = req.query.track || "backend";
+  const { slack_name, track } = req.query;
 
-  const github_file_url =
-    "https://github.com/brysonwaisi/endpoint/blob/main/app.js";
+  const date = moment();
+  const currentDay = date.format("dddd");
 
-  const github_repo_url = "https://github.com/brysonwaisi/endpoint";
+  const utcTime = date.toISOString().slice(0, -5) + "Z";
 
-  const response_data = {
-    slack_name,
-    current_day,
-    utc_time,
-    track,
-    github_file_url,
-    github_repo_url,
-    status_code: 200,
-  };
+  try {
+    if (!slack_name || !track) {
+      console.log("Input your slack_name and track");
 
-  res.json(response_data);
+      return res.sendStatus(400);
+    }
+
+    const status = 200;
+
+    const result = {
+      slack_name,
+      current_day: currentDay,
+      utc_time: utcTime,
+      track,
+      github_file_url:
+        "https://github.com/brysonwaisi/endpoint/blob/main/app.js",
+      github_repo_url: "https://github.com/brysonwaisi/endpoint",
+      status_code: status,
+    };
+
+    res.json(result);
+    res.status(200);
+  } catch (error) {
+    res.status(400);
+    console.log(error);
+    throw new Error(error.message);
+  }
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+app.listen(PORT, console.log(`server is running on port ${PORT}`));
