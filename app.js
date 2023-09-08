@@ -17,7 +17,7 @@ app.get("/api", (req, res) => {
   const date = moment();
   const currentDay = date.format("dddd");
 
-  const utcTime = date.toISOString().slice(0, -5) + "Z";
+  const utcTime = date.toISOString().split(".")[0] + "Z";
 
   try {
     if (!slack_name || !track) {
